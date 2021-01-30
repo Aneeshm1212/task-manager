@@ -81,11 +81,7 @@ else{
       catch(e){
           res.status(400).send(e)
       }}
-//     // task.find({}).then((r)=>{ 
-//     //     res.send(r)
-//     // }).catch((e)=>{
-//     //     res.status(500).send(e);
-//     // });
+
  });  
 
 router.get('/tasks/:id',auth,async(req,res)=>{
