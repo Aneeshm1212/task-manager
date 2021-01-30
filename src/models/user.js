@@ -1,6 +1,7 @@
 const mongoose= require('mongoose');
 const validator=require('validator');
 const becrypt=require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const userschema= new mongoose.Schema({
     Name:{
@@ -36,21 +37,49 @@ const userschema= new mongoose.Schema({
                throw new Error("Enter valid Age");
             }
         },
+    },
+    Tokens:[{
+        Token:{
+            type:String,
+            required:true
+            }
     }
+        ]
+    
 });
 
+userschema.methods.ValidToken = async function(){
+    const user =this;
+    const tokent = jwt.sign({_id:user._id.toString()},'kskssjsjasj');
+
+    user.Tokens = user.Tokens.concat({Token:tokent});
+
+    await user.save();
+    
+    return tokent;
+}
+
+userschema.methods.Hide = function(){
+    const user = this;
+    const userobj =user.toObject();
+
+    delete userobj.Password;
+    delete userobj.Tokens;
+    return userobj;
+};
 userschema.statics.CheckCred = async(Email,Password)=>{
 
-    const user =await User.findOne({Email});
-    if(!user)
+    const userr =await User.findOne({Email});
+    if(!userr)
     {
         throw new Error("Login Failed");
     }
-    const checkpass = becrypt.compare(Password,User.Password);
+    const checkpass = await becrypt.compare(Password,userr.Password);
+  
     if(!checkpass){
         throw new Error("Login Failed");  
     }
-return user;
+return userr;
 }
 
 userschema.pre('save' , async function(next){
