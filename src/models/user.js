@@ -2,6 +2,8 @@ const mongoose= require('mongoose');
 const validator=require('validator');
 const becrypt=require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const Task = require('./tasks');
+
 
 const userschema= new mongoose.Schema({
     Name:{
@@ -46,7 +48,8 @@ const userschema= new mongoose.Schema({
     }
         ]
     
-});
+},{timestamps:true}
+);
 
 userschema.methods.ValidToken = async function(){
     const user =this;
@@ -59,6 +62,11 @@ userschema.methods.ValidToken = async function(){
     return tokent;
 }
 
+userschema.virtual('tasks',{
+    ref:'Task',
+    localField:'_id',
+    foreignField:'owner'
+});
 userschema.methods.Hide = function(){
     const user = this;
     const userobj =user.toObject();
@@ -81,7 +89,14 @@ userschema.statics.CheckCred = async(Email,Password)=>{
     }
 return userr;
 }
+//delet tasks
+userschema.pre('remove',async function(next){
+    const user = this
+    await Task.deleteMany({owner:user._id});
+    next()
+});
 
+//password
 userschema.pre('save' , async function(next){
  const user=this;
     if(user.isModified('Password')){

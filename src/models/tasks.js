@@ -19,8 +19,14 @@ const taskschema=new mongoose.Schema({
     type:Boolean,
     required:true,
     trim:true
+    },
+
+    owner:{
+        type:mongoose.Schema.Types.ObjectId,
+        required:true,
+        ref:'User'
     }
-});
+},{timestamps:true});
 
 const Task=mongoose.model('Tasks' ,taskschema );
 
