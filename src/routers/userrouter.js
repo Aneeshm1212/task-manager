@@ -4,6 +4,22 @@ const becrypt=require('bcryptjs');
 const auth =require('../middleware/auth.js');
 require('../databse/mongoosedb.js');
 const user=require('../models/user.js');
+const multer = require('multer');
+const sharp = require('sharp');
+
+const upload = multer({
+    limits:{
+        fileSize:1000000
+    },
+    fileFilter(req,file,cb){
+        if(!file.originalname.match(/\.(jpg|jpeg|png)$/)){
+        return cb(new Error('Image should be png or jpeg'));
+        }
+        cb(null,true);
+    }
+
+});
+
 
 router.post('/users',async(req,res)=>{
 
@@ -145,5 +161,41 @@ router.post('/users/logoutAll',auth,async(req,res)=>{
     catch(e){
      res.status(500).send();
  }
+});
+
+//upload profile
+
+router.post('/users/me/avatar',auth,upload.single('fname'),async(req,res)=>{
+    const buffer = await sharp(req.file.buffer).resize({width:200 , height : 300}).png().toBuffer();
+    req.user.Avatar = buffer
+    await req.user.save()
+    res.status(200).send();
+},(error,req,res,next)=>{
+    
+    res.status(400).send({Error:error.message})
+});
+
+
+router.delete('/users/me/avatar',auth,upload.single('fname'),async(req,res)=>{
+    
+    req.user.Avatar = undefined
+    await req.user.save()
+    res.status(200).send();
+});
+
+router.get('/users/:id/avatar',upload.single('fname'),async(req,res)=>{
+    try{
+        const ruser =await user.findById(req.params.id);
+        if(!ruser  || !ruser.Avatar)
+        {
+            throw new Error()
+        }
+        res.set('Content-Type','image/png');
+        res.send(ruser.Avatar)
+    }
+    catch(e)
+    {
+        res.status(400).send()
+    }
 });
     module.exports=router;

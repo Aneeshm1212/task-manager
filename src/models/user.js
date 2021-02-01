@@ -46,7 +46,10 @@ const userschema= new mongoose.Schema({
             required:true
             }
     }
-        ]
+        ],
+    Avatar:{
+        type:Buffer
+    }
     
 },{timestamps:true}
 );
@@ -73,6 +76,7 @@ userschema.methods.Hide = function(){
 
     delete userobj.Password;
     delete userobj.Tokens;
+    delete userobj.Avatar;
     return userobj;
 };
 userschema.statics.CheckCred = async(Email,Password)=>{
